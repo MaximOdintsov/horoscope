@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http.response import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
 from django.urls import reverse
+from django.template.loader import render_to_string
 
 import datetime
 
@@ -44,37 +45,6 @@ types_dict = {
 }
 
 
-def types_of_zodiac_sign(request, types):
-    if types != 'types':  # проверка, правильно ли введен адрес
-        return HttpResponseNotFound('Такой страницы не существует')
-
-    type_elements = ''
-    for type_element in types_list:
-        link = reverse("types_sign_name", args=[types, type_element])
-        type_elements += f'<li> <a href="{link}"> {type_element.title()} </a> </li>'
-
-    response = f'''
-    <ul>
-        {type_elements}
-    </ul>
-    '''
-    return HttpResponse(response)
-
-
-def get_info_about_the_type_of_zodiac_sign(request, types, types_sign_zodiac):
-    type_elements = types_dict.get(types_sign_zodiac)
-    description_elements = ''
-    for sign in type_elements:
-        redirect_path = reverse("horoscope_name", args=[sign])
-        description_elements += f'<li> <a href="{redirect_path}"> {sign.title()} </a> </li>'
-    response = f'''
-    <ul>
-        {description_elements}
-    </ul>
-    '''
-    return HttpResponse(response)
-
-
 def index(request):
     zodiacs = list(zodiac_dict)
     li_elements = ''
@@ -97,10 +67,14 @@ def index(request):
 
 
 def get_info_about_sign_zodiac(request, sign_zodiac: str):
-    description = zodiac_dict.get(sign_zodiac, None)  # key = sign_zodiac
+    description = zodiac_dict.get(sign_zodiac)  # key = sign_zodiac
+    data = {
+        'description_zodiac': description,
+        'sign_zodiac': sign_zodiac.title(),
+    }
 
     if description:  # if the key is found, then this function is executed
-        return HttpResponse(description)
+        return render(request, 'horoscope/info_zodiac.html', context=data)
     else:
         return HttpResponseNotFound(f'Такого знака зодиака - "{sign_zodiac}" не существует!')
 
@@ -139,7 +113,7 @@ def get_info_by_date(request, month, day):
 
             sign = date_input(date1, date2, f'{month}/{day}')
 
-            if sign == True:
+            if sign is True:
                 redirect_url = reverse("horoscope_name", args=[key])
                 return HttpResponseRedirect(redirect_url)
 
@@ -147,4 +121,34 @@ def get_info_by_date(request, month, day):
         return HttpResponseRedirect(redirect_url)
     else:
         return HttpResponseNotFound('Неправильно введена дата!')
-# print(date_init('3/10'))
+
+
+def types_of_zodiac_sign(request, types):
+    if types != 'types':  # проверка, правильно ли введен адрес
+        return HttpResponseNotFound('Такой страницы не существует')
+
+    type_elements = ''
+    for type_element in types_list:
+        link = reverse("types_sign_name", args=[types, type_element])
+        type_elements += f'<li> <a href="{link}"> {type_element.title()} </a> </li>'
+
+    response = f'''
+    <ul>
+        {type_elements}
+    </ul>
+    '''
+    return HttpResponse(response)
+
+
+def get_info_about_the_type_of_zodiac_sign(request, types, types_sign_zodiac):
+    type_elements = types_dict.get(types_sign_zodiac)
+    description_elements = ''
+    for sign in type_elements:
+        redirect_path = reverse("horoscope_name", args=[sign])
+        description_elements += f'<li> <a href="{redirect_path}"> {sign.title()} </a> </li>'
+    response = f'''
+    <ul>
+        {description_elements}
+    </ul>
+    '''
+    return HttpResponse(response)
