@@ -70,7 +70,7 @@ def get_info_about_sign_zodiac(request, sign_zodiac: str):
     description = zodiac_dict.get(sign_zodiac)  # key = sign_zodiac
     data = {
         'description_zodiac': description,
-        'sign_zodiac': sign_zodiac.title(),
+        'sign_zodiac': sign_zodiac,
     }
 
     if description:  # if the key is found, then this function is executed
